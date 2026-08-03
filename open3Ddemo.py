@@ -1,3 +1,4 @@
+#cd C:\dev\open3D
 import open3d as o3d
 
 dataset = o3d.data.PCDPointCloud()

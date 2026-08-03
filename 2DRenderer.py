@@ -4,7 +4,7 @@ import numpy as np
 import json
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480, zoom=0.6):
+def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480, zoom=0.6, cam_height_multiplier=0.2):
     pcd = o3d.io.read_point_cloud(pcd_path)
 
     # Data given by open3D
@@ -35,7 +35,7 @@ def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland
         angle = i * (2 * np.pi / num_views)
         cam_x = center[0] + radius * np.cos(angle)
         cam_y = center[1] + radius * np.sin(angle)
-        cam_z = center[2] + (radius * 0.2) # Elevate camera for birds eye view
+        cam_z = center[2] + (radius * cam_height_multiplier) # Elevate camera for birds eye view
         
         # ---- Control the view of the vizualiser ie extrinsic cam parameters [R|t] ----
         # https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec/
