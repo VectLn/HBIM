@@ -15,7 +15,7 @@ vis.add_geometry(pcd)
 ctr = vis.get_view_control()
 ctr.set_lookat([0.0, 0.0, 0.0])  # Point ciblé
 ctr.set_front([1.0, 1.0, 1.0])   # Direction d'observation (vecteur normal à la caméra)
-ctr.set_up([0.0, 0.0, 1.0])      # Vecteur vertical (axe Z vers le haut)
+ctr.set_up([0.0, 1.0, 0.0])      # Vecteur vertical (axe Z vers le haut)
 ctr.set_zoom(0.8)
 
 # 5. Mise à jour et rendu
@@ -23,7 +23,7 @@ vis.poll_events()
 vis.update_renderer()
 
 # 6. Capture et sauvegarde de l'image
-vis.capture_screen_image("view_001.png", do_render=True)
+vis.capture_screen_image("view_002.png", do_render=True)
 vis.destroy_window()
 
 print("Rendu sauvegarde sous 'view_001.png'")
