@@ -4,13 +4,13 @@ import numpy as np
 import json
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480):
+def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480, zoom=0.6):
     pcd = o3d.io.read_point_cloud(pcd_path)
 
     # Data given by open3D
     #dataset = o3d.data.PCDPointCloud()
     #pcd = o3d.io.read_point_cloud(dataset.path)
-    
+
     # Create folder
     img_dir = "images"
     json_dir = "mappings"
@@ -47,8 +47,8 @@ def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland
         # Z axis
         ctr.set_up([0, 0, 1])
 
-        # Zoom
-        ctr.set_zoom(0.8)
+        # Zoom: should try to change for best results
+        ctr.set_zoom(zoom)
 
         # Render
         vis.poll_events()
