@@ -4,18 +4,18 @@ import numpy as np
 import json
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="site_archeo.ply", num_views=8, width=640, height=480):
-    #pcd = o3d.io.read_point_cloud(pcd_path)
+def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480):
+    pcd = o3d.io.read_point_cloud(pcd_path)
 
+    # Data given by open3D
+    #dataset = o3d.data.PCDPointCloud()
+    #pcd = o3d.io.read_point_cloud(dataset.path)
+    
     # Create folder
     img_dir = "images"
     json_dir = "mappings"
     os.makedirs(img_dir, exist_ok=True)
     os.makedirs(json_dir, exist_ok=True)
-
-    # Data given by open3D
-    dataset = o3d.data.PCDPointCloud()
-    pcd = o3d.io.read_point_cloud(dataset.path)
 
     points = np.asarray(pcd.points)
 
