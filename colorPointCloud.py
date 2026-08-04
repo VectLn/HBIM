@@ -6,7 +6,7 @@ import open3d as o3d
 # 1. Configuration des chemins
 hbim_dir = Path(__file__).parent
 ply_input_path = hbim_dir / "PointCloud_Lighthouse_MorrisIsland.ply"
-labels_json_path = hbim_dir / "point_labels_000.json"
+labels_json_path = hbim_dir / "point_labels.json"
 ply_output_path = (
     hbim_dir / "PointCloud_Lighthouse_MorrisIsland_segmented.ply"
 )

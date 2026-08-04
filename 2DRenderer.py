@@ -116,6 +116,7 @@ def generate_trajectory_and_mapping(
         u = np.round(points_2d_homo[:, 0] / points_2d_homo[:, 2]).astype(int)
         v = np.round(points_2d_homo[:, 1] / points_2d_homo[:, 2]).astype(int)
         depth = points_cam_valid[:, 2]
+        camera_distance = np.linalg.norm(points_cam_valid[:, :3], axis=1)
 
         # Index from point cloud
         original_idx = np.where(valid_points)[0]
@@ -125,6 +126,7 @@ def generate_trajectory_and_mapping(
         u = u[in_image]
         v = v[in_image]
         depth = depth[in_image]
+        camera_distance = camera_distance[in_image]
         original_idx = original_idx[in_image]
 
         # Z Buffer occlusion
@@ -135,15 +137,16 @@ def generate_trajectory_and_mapping(
             pt_idx = int(original_idx[idx])
 
             if pixel_key not in mapping or d < mapping[pixel_key]["depth"]:
-                mapping[pixel_key] = {"pt_idx": pt_idx, "depth": float(d)}
-
-        # Only keep idx
-        final_mapping = {k: v["pt_idx"] for k, v in mapping.items()}
+                mapping[pixel_key] = {
+                    "pt_idx": pt_idx,
+                    "depth": float(d),
+                    "camera_distance": float(camera_distance[idx]),
+                }
 
         # Save dico
         dict_name = os.path.join(json_dir, f"mapping_{i:03d}.json")
         with open(dict_name, "w") as f:
-            json.dump(final_mapping, f)
+            json.dump(mapping, f)
 
     vis.destroy_window()
 
