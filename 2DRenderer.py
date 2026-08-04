@@ -4,8 +4,9 @@ import numpy as np
 import json
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640,
-                                    height=480, zoom=0.5, cam_height_multiplier=0.3):
+def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=1280,
+                                    height=960, zoom=5, cam_height_multiplier=-0.22, 
+                                    lookat_z_offset=-0.4):
     pcd = o3d.io.read_point_cloud(pcd_path)
 
     # Data given by open3D
@@ -34,11 +35,13 @@ def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland
     cam_distance = radius / zoom
     
     for i in range(num_views):
+        print(f"Image numero {i}")
         # Compute camera position all around bounding box center
         angle = i * (2 * np.pi / num_views)
         cam_x = center[0] + cam_distance * np.cos(angle)
         cam_y = center[1] + cam_distance * np.sin(angle)
         cam_z = center[2] + (cam_distance * cam_height_multiplier) # Elevate camera for birds eye view
+    
         
         # # ---- Control the view of the vizualiser ie extrinsic cam parameters [R|t] ----
         # # https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec/
@@ -52,7 +55,7 @@ def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland
 
         # Constructs extrinsic matrix manually
         cam_pos = np.array([cam_x, cam_y, cam_z])
-        lookat = np.array(center)
+        lookat = np.array([center[0], center[1], center[2] + cam_distance * lookat_z_offset])
         up = np.array([0, 0, 1])
 
         # 1. Z_cam points FORWARD (from camera to lookat)

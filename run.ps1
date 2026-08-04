@@ -17,7 +17,7 @@ Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) --
             --output_dir ".\masks" `
             --box_threshold 0.3 `
             --text_threshold 0.25 `
-            --text_prompt "lighthouse, windows" `
+            --text_prompt "pillar, statue, lamp, window, flag, wall, stairs, barrier" `
             --device "cpu"
     } else {
         Write-Host "Avertissement : $img_path introuvable."
