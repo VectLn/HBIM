@@ -4,7 +4,8 @@ import numpy as np
 import json
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640, height=480, zoom=0.6, cam_height_multiplier=0.2):
+def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland.ply", num_views=8, width=640,
+                                    height=480, zoom=0.5, cam_height_multiplier=0.3):
     pcd = o3d.io.read_point_cloud(pcd_path)
 
     # Data given by open3D
