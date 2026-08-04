@@ -132,8 +132,8 @@ def generate_trajectory_and_mapping(pcd_path="PointCloud_Lighthouse_MorrisIsland
             if pixel_key not in mapping or d < mapping[pixel_key]['depth']:
                 mapping[pixel_key] = {'pt_idx': pt_idx, 'depth': float(d)}
         
-        # Only keep idx
-        final_mapping = {k: v['pt_idx'] for k, v in mapping.items()}
+        # Only keep idx and depth
+        final_mapping = { k: {"pt_idx": v["pt_idx"], "depth": v["depth"]} for k, v in mapping.items()}
         
         # Save dico
         dict_name = os.path.join(json_dir, f"mapping_{i:03d}.json")

@@ -7,29 +7,29 @@ mappings_dir = hbim_dir / "mappings"
 masks_dir = hbim_dir / "masks"
 output_path = hbim_dir / "point_labels_all.json"
 
-# Dictionnaire global des votes
+# Global dictionary to accumulate votes for each 3D point
 point_votes = {}
 
-# Récupération de tous les fichiers de mapping
+# Every mapping file
 mapping_files = sorted(list(mappings_dir.glob("mapping_*.json")))
 
 for mapping_file in mapping_files:
-    # Extraction de l'identifiant de vue (ex: mapping_000.json -> view_000)
+    # Extract id
     view_id = mapping_file.stem.replace("mapping_", "view_")
 
     mask_npy_path = masks_dir / f"mask_{view_id}.npy"
     mask_json_path = masks_dir / f"mask_{view_id}.json"
 
-    # Vérification de l'existence du masque pour cette vue
+    # Is there a mask for this view
     if not mask_npy_path.exists() or not mask_json_path.exists():
         print(f"Masque non trouvé pour {view_id}, vue ignorée.")
         continue
 
-    # Chargement du dico 2D -> 3D
+    # Loading dico 2D -> 3D
     with open(mapping_file, "r") as f:
         pixel_to_point = json.load(f)
 
-    # Chargement du masque 2D et des métadonnées
+    # Loading mask and metadata
     mask_2d = np.load(mask_npy_path)
     with open(mask_json_path, "r") as f:
         metadata = json.load(f)
@@ -37,32 +37,42 @@ for mapping_file in mapping_files:
     id_to_label = {item["value"]: item["label"] for item in metadata}
     id_to_logit = {item["value"]: item.get("logit", 1.0) for item in metadata}
 
-    # Accumulation des votes pour cette vue
-    for coord_str, point_id in pixel_to_point.items():
+    # Accumulate votes for each 3D point based on the 2D mask and mapping
+    for coord_str, point_data in pixel_to_point.items():
         u, v = map(int, coord_str.split(","))
+
+        # Extract point_id and depth from point_data
+        if isinstance(point_data, dict):
+            point_id = point_data["pt_idx"]
+            d_cam = point_data["depth"]
+        else:
+            point_id = point_data
+            d_cam = 1.0  # If depth is not provided
 
         if 0 <= v < mask_2d.shape[0] and 0 <= u < mask_2d.shape[1]:
             label_id = mask_2d[v, u]
 
-            # Ignorer le background (label_id == 0)
             if label_id != 0:
                 label = id_to_label.get(label_id, "unknown")
                 logit = id_to_logit.get(label_id, 1.0)
+
+                # weight = logit / d_cam
+                weight = logit / max(d_cam, 1e-5)
 
                 if point_id not in point_votes:
                     point_votes[point_id] = {}
 
                 point_votes[point_id][label] = (
-                    point_votes[point_id].get(label, 0.0) + logit
+                    point_votes[point_id].get(label, 0.0) + weight
                 )
 
-# Élection du label majoritaire par point
+# Voting for majority label for each 3D point
 point_labels = {}
 for point_id, votes in point_votes.items():
     best_label = max(votes, key=votes.get)
     point_labels[point_id] = best_label
 
-# Sauvegarde globale
+# Save
 with open(output_path, "w") as f:
     json.dump(point_labels, f, indent=4)
 
