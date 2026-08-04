@@ -14,7 +14,7 @@ ply_output_path = (
 # 2. Palette de couleurs RGB (valeurs entre 0.0 et 1.0)
 color_palette = {
     "lighthouse": [1.0, 0.0, 0.0],  # Rouge
-    "windows": [0.0, 0.0, 1.0],  # Bleu
+    "window": [0.0, 0.0, 1.0],  # Bleu
     "door": [0.0, 1.0, 0.0],  # Vert
     "roof": [1.0, 0.5, 0.0],  # Orange
     "wall": [0.8, 0.8, 0.8],  # Gris clair

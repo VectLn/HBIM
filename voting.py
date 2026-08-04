@@ -1,13 +1,39 @@
+import hashlib
 import json
 from pathlib import Path
 import numpy as np
+from PIL import Image
 
 hbim_dir = Path(__file__).parent
 gsa_dir = hbim_dir / "Grounded-Segment-Anything" / "outputs"
 
 mapping_path = hbim_dir / "mappings" / "mapping_000.json"
+rendered_image_path = hbim_dir / "images" / "view_000.png"
 mask_npy_path = gsa_dir / "mask.npy"
 mask_json_path = gsa_dir / "mask.json"
+source_image_json_path = gsa_dir / "source_image.json"
+
+
+def sha256(path):
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+# Refuse de projeter un masque calcule sur une autre image.
+if not source_image_json_path.exists():
+    raise RuntimeError(
+        "outputs/source_image.json est absent. Relancez grounded_sam_demo.py "
+        "sur ../images/view_000.png avant voting.py."
+    )
+
+with open(source_image_json_path, "r") as f:
+    source_image = json.load(f)
+
+if source_image.get("sha256") != sha256(rendered_image_path):
+    raise RuntimeError(
+        "Le masque et mapping_000.json ne correspondent pas a la meme image. "
+        "Lancez Grounded-SAM avec --input_image ../images/view_000.png."
+    )
 
 # Load dico 2D -> 3D
 with open(mapping_path, "r") as f:
@@ -15,6 +41,14 @@ with open(mapping_path, "r") as f:
 
 # Load 2D mask
 mask_2d = np.load(mask_npy_path)
+
+with Image.open(rendered_image_path) as rendered_image:
+    expected_shape = (rendered_image.height, rendered_image.width)
+if mask_2d.shape != expected_shape:
+    raise RuntimeError(
+        f"Dimensions incompatibles: masque={mask_2d.shape}, "
+        f"rendu={expected_shape}."
+    )
 
 # Load mask labels
 with open(mask_json_path, "r") as f:

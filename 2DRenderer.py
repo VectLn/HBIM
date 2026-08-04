@@ -1,14 +1,14 @@
 import ctypes
 import os
 
-# Forcer Python à ignorer la mise à l'échelle DPI de Windows
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Per-monitor DPI aware
-except Exception:
-    try:
-        ctypes.windll.user32.SetProcessDPIAware()
-    except Exception:
-        pass
+# # Forcer Python à ignorer la mise à l'échelle DPI de Windows
+# try:
+#     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Per-monitor DPI aware
+# except Exception:
+#     try:
+#         ctypes.windll.user32.SetProcessDPIAware()
+#     except Exception:
+#         pass
 
 import json
 import numpy as np
@@ -84,6 +84,10 @@ def generate_trajectory_and_mapping(
         cam_params.extrinsic = extrinsic_matrix
         ctr.convert_from_pinhole_camera_parameters(cam_params, True)
 
+        # Relire les parametres effectivement acceptes par Open3D. Le rendu et
+        # la projection 3D -> 2D doivent imperativement utiliser le meme K,R,t.
+        cam_params = ctr.convert_to_pinhole_camera_parameters()
+
         # Render
         vis.poll_events()
         vis.update_renderer()
@@ -92,7 +96,7 @@ def generate_trajectory_and_mapping(
         img_name = os.path.join(img_dir, f"view_{i:03d}.png")
         vis.capture_screen_image(img_name, do_render=True)
 
-        # Get extrinsic and intrinsic matrix of cam parameters
+        # Get the exact extrinsic and intrinsic matrices used for rendering
         extrinsic = np.copy(cam_params.extrinsic)  # Matrix [R|t] 4x4
         intrinsic = cam_params.intrinsic.intrinsic_matrix  # Matrix K 3x3
 
