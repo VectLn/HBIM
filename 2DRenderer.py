@@ -1,7 +1,20 @@
-import json
+import ctypes
 import os
+
+# Forcer Python à ignorer la mise à l'échelle DPI de Windows
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Per-monitor DPI aware
+except Exception:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
+import json
 import numpy as np
 import open3d as o3d
+
+# ... reste de votre script d'origine ...
 
 
 def generate_trajectory_and_mapping(
