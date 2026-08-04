@@ -80,7 +80,6 @@ def generate_trajectory_and_mapping(
         vis.capture_screen_image(img_name, do_render=True)
 
         # Get extrinsic and intrinsic matrix of cam parameters
-        cam_params = ctr.convert_to_pinhole_camera_parameters()
         extrinsic = np.copy(cam_params.extrinsic)  # Matrix [R|t] 4x4
         intrinsic = cam_params.intrinsic.intrinsic_matrix  # Matrix K 3x3
 
