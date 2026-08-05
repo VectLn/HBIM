@@ -1,17 +1,64 @@
-import os
-import open3d as o3d
-import numpy as np
 import json
+import os
+import numpy as np
+import open3d as o3d
+
 # See https://www.open3d.org/docs/release/index.html
 
-def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=1280,
-                                    height=960, zoom=5, cam_height_multiplier=-0.22, 
-                                    lookat_z_offset=-0.4):
+
+# FIXED LOOKAT
+def get_orbit_pose(
+    i,
+    num_views,
+    center,
+    cam_distance,
+    cam_height_multiplier,
+    lookat_z_offset,
+):
+
+    angle = i * (2 * np.pi / num_views)
+    cam_x = center[0] + cam_distance * np.cos(angle)
+    cam_y = center[1] + cam_distance * np.sin(angle)
+    cam_z = center[2] + (
+        cam_distance * cam_height_multiplier
+    )  # Elevate camera for birds eye view
+
+    cam_pos = np.array([cam_x, cam_y, cam_z])
+    lookat = np.array(
+        [center[0], center[1], center[2] + cam_distance * lookat_z_offset]
+    )
+    return cam_pos, lookat
+
+# FIXED CAMERA
+def get_panorama_pose(
+    i, num_views, center, cam_height_multiplier, lookat_z_offset
+):
+    angle = i * (2 * np.pi / num_views)
+
+    # Position fixe de la caméra (au centre)
+    cam_pos = np.array([center[0], center[1], center[2] + cam_height_multiplier])
+
+    # Le vecteur de visée tourne autour de la caméra
+    view_dir = np.array([np.cos(angle), np.sin(angle), lookat_z_offset])
+    lookat = cam_pos + view_dir
+    return cam_pos, lookat
+
+
+def generate_trajectory_and_mapping(
+    pcd_path="Paris5.ply",
+    num_views=8,
+    width=1280,
+    height=960,
+    zoom=5,
+    cam_height_multiplier=-0.22,
+    lookat_z_offset=-0.4,
+    mode="orbit",  # "orbit" (camera orbits around) or "fixed" (camera turns around)
+):
     pcd = o3d.io.read_point_cloud(pcd_path)
 
     # Data given by open3D
-    #dataset = o3d.data.PCDPointCloud()
-    #pcd = o3d.io.read_point_cloud(dataset.path)
+    # dataset = o3d.data.PCDPointCloud()
+    # pcd = o3d.io.read_point_cloud(dataset.path)
 
     # Create folder
     img_dir = "images"
@@ -33,16 +80,25 @@ def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=12
     vis.add_geometry(pcd)
 
     cam_distance = radius / zoom
-    
+
     for i in range(num_views):
         print(f"Image numero {i}")
-        # Compute camera position all around bounding box center
-        angle = i * (2 * np.pi / num_views)
-        cam_x = center[0] + cam_distance * np.cos(angle)
-        cam_y = center[1] + cam_distance * np.sin(angle)
-        cam_z = center[2] + (cam_distance * cam_height_multiplier) # Elevate camera for birds eye view
-    
-        
+
+        # Sélection du mode de caméra
+        if mode == "fixed":
+            cam_pos, lookat = get_panorama_pose(
+                i, num_views, center, cam_height_multiplier, lookat_z_offset
+            )
+        else:  # mode == "orbit"
+            cam_pos, lookat = get_orbit_pose(
+                i,
+                num_views,
+                center,
+                cam_distance,
+                cam_height_multiplier,
+                lookat_z_offset,
+            )
+
         # # ---- Control the view of the vizualiser ie extrinsic cam parameters [R|t] ----
         # # https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec/
         # ctr = vis.get_view_control()
@@ -54,8 +110,6 @@ def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=12
         # ctr.set_up([0, 0, 1])
 
         # Constructs extrinsic matrix manually
-        cam_pos = np.array([cam_x, cam_y, cam_z])
-        lookat = np.array([center[0], center[1], center[2] + cam_distance * lookat_z_offset])
         up = np.array([0, 0, 1])
 
         # 1. Z_cam points FORWARD (from camera to lookat)
@@ -85,44 +139,48 @@ def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=12
         # Render
         vis.poll_events()
         vis.update_renderer()
-        
+
         # Save image
         img_name = os.path.join(img_dir, f"view_{i:03d}.png")
         vis.capture_screen_image(img_name, do_render=True)
-        
+
         # Get extrinsic and intrinsic matrix of cam parameters
         cam_params = ctr.convert_to_pinhole_camera_parameters()
-        extrinsic = np.copy(cam_params.extrinsic) # Matrix [R|t] 4x4
-        intrinsic = cam_params.intrinsic.intrinsic_matrix # Matrix K 3x3
-        
+        extrinsic = np.copy(cam_params.extrinsic)  # Matrix [R|t] 4x4
+        intrinsic = cam_params.intrinsic.intrinsic_matrix  # Matrix K 3x3
+
         # ---- 3D -> 2D ----
         # Homogeneous coordinates (X, Y, Z, 1) ie cartesian coordinates scaled
         points_homo = np.hstack((points, np.ones((points.shape[0], 1))))
-        
+
         # Convert global coordinates to cam coordinates ([R|t].x_world)
         points_cam = (extrinsic @ points_homo.T).T
-        
+
         # Filters out points behind camera
-        valid_points = points_cam[:, 2] > 0 # Z is 3rd row, if Z < 0 then the point is behind the camera
+        valid_points = (
+            points_cam[:, 2] > 0
+        )  # Z is 3rd row, if Z < 0 then the point is behind the camera
         points_cam_valid = points_cam[valid_points]
-        
+
         # Projects on image plan (K.points_cam)
         # ps Information on image definition is in K
         points_2d_homo = (intrinsic @ points_cam_valid[:, :3].T).T
-        u = (points_2d_homo[:, 0] / points_2d_homo[:, 2]).astype(int) # Division by w to account for perspective
+        u = (points_2d_homo[:, 0] / points_2d_homo[:, 2]).astype(
+            int
+        )  # Division by w to account for perspective
         v = (points_2d_homo[:, 1] / points_2d_homo[:, 2]).astype(int)
         depth = points_cam_valid[:, 2]
-        
+
         # index from point cloud
         original_idx = np.where(valid_points)[0]
-        
+
         # Filters out points outside the image
         in_image = (u >= 0) & (u < width) & (v >= 0) & (v < height)
         u = u[in_image]
         v = v[in_image]
         depth = depth[in_image]
         original_idx = original_idx[in_image]
-        
+
         # Z Buffer occlusion
         mapping = {}
         for idx in range(len(u)):
@@ -130,20 +188,27 @@ def generate_trajectory_and_mapping(pcd_path="Paris5.ply", num_views=8, width=12
             pixel_key = f"{u[idx]},{v[idx]}"
             d = depth[idx]
             pt_idx = int(original_idx[idx])
-            
+
             # Only keep closest point to camera
-            if pixel_key not in mapping or d < mapping[pixel_key]['depth']:
-                mapping[pixel_key] = {'pt_idx': pt_idx, 'depth': float(d)}
-        
+            if pixel_key not in mapping or d < mapping[pixel_key]["depth"]:
+                mapping[pixel_key] = {"pt_idx": pt_idx, "depth": float(d)}
+
         # Only keep idx and depth
-        final_mapping = { k: {"pt_idx": v["pt_idx"], "depth": v["depth"]} for k, v in mapping.items()}
-        
+        final_mapping = {
+            k: {"pt_idx": v["pt_idx"], "depth": v["depth"]}
+            for k, v in mapping.items()
+        }
+
         # Save dico
         dict_name = os.path.join(json_dir, f"mapping_{i:03d}.json")
-        with open(dict_name, 'w') as f:
+        with open(dict_name, "w") as f:
             json.dump(final_mapping, f)
 
     vis.destroy_window()
 
-# Execute
-generate_trajectory_and_mapping()
+
+# Execute en mode orbite
+# generate_trajectory_and_mapping(mode="orbit")
+
+# Execute en mode panoramique (caméra fixe)
+generate_trajectory_and_mapping(mode="fixed")
