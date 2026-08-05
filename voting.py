@@ -79,3 +79,5 @@ with open(output_path, "w") as f:
 print(
     f"{len(point_labels)} points 3D étiquetés cumulés sur les vues traitées. Fichier généré : {output_path}"
 )
+
+print("Labels :", set(point_labels.values()))

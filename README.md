@@ -24,4 +24,14 @@ Invoke-WebRequest -Uri "https://github.com/IDEA-Research/GroundingDINO/releases/
 
 Invoke-WebRequest -Uri "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth" -OutFile ".\weights\sam_vit_b_01ec64.pth"
 
-python .\grounded_sam_demo.py --config ".\GroundingDINO\groundingdino\config\GroundingDINO_SwinT_OGC.py" --grounded_checkpoint ".\weights\groundingdino_swint_ogc.pth" --sam_version "vit_b" --sam_checkpoint ".\weights\sam_vit_b_01ec64.pth" --input_image ".\assets\demo1.jpg" --output_dir ".\outputs" --box_threshold 0.3 --text_threshold 0.25 --text_prompt "bear" --device "cpu"
+python .\grounded_sam_demo.py `
+  --config ".\GroundingDINO\groundingdino\config\GroundingDINO_SwinT_OGC.py" `
+  --grounded_checkpoint ".\weights\groundingdino_swint_ogc.pth" `
+  --sam_version "vit_b" `
+  --sam_checkpoint ".\weights\sam_vit_b_01ec64.pth" `
+  --input_image ".\assets\demo1.jpg" `
+  --output_dir ".\outputs" `
+  --box_threshold 0.3 `
+  --text_threshold 0.25 `
+  --text_prompt "bear" `
+  --device "cpu"

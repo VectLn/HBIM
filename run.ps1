@@ -1,8 +1,10 @@
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
 Write-Host "--- [1/4] Etape 1 : Execution de 2DRenderer.py ---"
 python 2DRenderer.py
 
-Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) ---"
-0..7 | ForEach-Object {
+Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a ...) ---"
+0..29 | ForEach-Object {
     $view_id = "{0:D3}" -f $_
     $img_path = ".\images\view_${view_id}.png"
     
@@ -17,7 +19,7 @@ Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) --
             --output_dir ".\masks" `
             --box_threshold 0.3 `
             --text_threshold 0.25 `
-            --text_prompt "pillar, statue, lamp, window, flag, wall, stairs, barrier" `
+            --text_prompt "sign . traffic_light . streetlight . window . table . car . tree" `
             --device "cpu"
     } else {
         Write-Host "Avertissement : $img_path introuvable."
@@ -26,6 +28,9 @@ Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) --
 
 Write-Host "`n--- [3/4] Etape 3 : Execution de voting.py ---"
 python voting.py
+
+$stopwatch.Stop()
+Write-Host ("`nTemps total d'execution : {0:hh\:mm\:ss\.fff}" -f $stopwatch.Elapsed)
 
 Write-Host "`n--- [4/4] Etape 4 : Execution de colorPointCloud.py ---"
 python colorPointCloud.py

@@ -8,12 +8,7 @@ import open3d as o3d
 
 # FIXED LOOKAT
 def get_orbit_pose(
-    i,
-    num_views,
-    center,
-    cam_distance,
-    cam_height_multiplier,
-    lookat_z_offset,
+    i, num_views, center, cam_distance, cam_height_multiplier, lookat_z_offset,
 ):
 
     angle = i * (2 * np.pi / num_views)
@@ -31,12 +26,12 @@ def get_orbit_pose(
 
 # FIXED CAMERA
 def get_panorama_pose(
-    i, num_views, center, cam_height_multiplier, lookat_z_offset
+    i, num_views, center, cam_distance, cam_height_multiplier, lookat_z_offset
 ):
     angle = i * (2 * np.pi / num_views)
 
     # Position fixe de la caméra (au centre)
-    cam_pos = np.array([center[0], center[1], center[2] + cam_height_multiplier])
+    cam_pos = np.array([center[0], center[1], center[2] + cam_distance * cam_height_multiplier])
 
     # Le vecteur de visée tourne autour de la caméra
     view_dir = np.array([np.cos(angle), np.sin(angle), lookat_z_offset])
@@ -46,12 +41,12 @@ def get_panorama_pose(
 
 def generate_trajectory_and_mapping(
     pcd_path="Paris5.ply",
-    num_views=8,
+    num_views=30,
     width=1280,
     height=960,
     zoom=5,
     cam_height_multiplier=-0.22,
-    lookat_z_offset=-0.4,
+    lookat_z_offset=-0.1,
     mode="orbit",  # "orbit" (camera orbits around) or "fixed" (camera turns around)
 ):
     pcd = o3d.io.read_point_cloud(pcd_path)
@@ -87,7 +82,7 @@ def generate_trajectory_and_mapping(
         # Sélection du mode de caméra
         if mode == "fixed":
             cam_pos, lookat = get_panorama_pose(
-                i, num_views, center, cam_height_multiplier, lookat_z_offset
+                i, num_views, center, cam_distance, cam_height_multiplier, lookat_z_offset
             )
         else:  # mode == "orbit"
             cam_pos, lookat = get_orbit_pose(
