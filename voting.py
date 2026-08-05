@@ -62,13 +62,17 @@ for mapping_file in mapping_files:
                 if point_id not in point_votes:
                     point_votes[point_id] = {}
 
-                point_votes[point_id][label] = (
-                    point_votes[point_id].get(label, 0.0) + weight
-                )
+                # Vote for each sub-label if label is composed (e.g., "road crosswalk")
+                for sub_label in label.split():
+                    point_votes[point_id][sub_label] = (
+                        point_votes[point_id].get(sub_label, 0.0) + weight
+                    )
 
 # Voting for majority label for each 3D point
 point_labels = {}
 for point_id, votes in point_votes.items():
+    if not votes:
+        continue 
     best_label = max(votes, key=votes.get)
     point_labels[point_id] = best_label
 
