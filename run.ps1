@@ -1,8 +1,8 @@
 Write-Host "--- [1/4] Etape 1 : Execution de 2DRenderer.py ---"
-python 2DRenderer.py
+#python 2DRenderer.py
 
-Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) ---"
-0..7 | ForEach-Object {
+Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM ---"
+0..18 | ForEach-Object {
     $view_id = "{0:D3}" -f $_
     $img_path = ".\images\view_${view_id}.png"
     
@@ -15,9 +15,9 @@ Write-Host "`n--- [2/4] Etape 2 : Execution de Grounded-SAM (views 000 a 007) --
             --sam_checkpoint ".\Grounded-Segment-Anything\weights\sam_vit_b_01ec64.pth" `
             --input_image $img_path `
             --output_dir ".\masks" `
-            --box_threshold 0.3 `
-            --text_threshold 0.25 `
-            --text_prompt "pillar, statue, lamp, window, flag, wall, stairs, barrier" `
+            --box_threshold 0.15 `
+            --text_threshold 0.15 `
+            --text_prompt "house . tree . window . pool . car . road . grass . table . bush" `
             --device "cpu"
     } else {
         Write-Host "Avertissement : $img_path introuvable."
