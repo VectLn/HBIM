@@ -40,13 +40,14 @@ def get_panorama_pose(
 
 
 def generate_trajectory_and_mapping(
-    pcd_path="Paris5.ply",
-    num_views=30,
+    pcd_path="Maison_Villa.ply",
+    num_views=8,
     width=1280,
     height=960,
-    zoom=5,
-    cam_height_multiplier=-0.22,
-    lookat_z_offset=-0.1,
+    zoom=3,
+    cam_height_multiplier=0.5,
+    cam_distance_multiplier=2.0,
+    lookat_z_offset=0.1,
     mode="orbit",  # "orbit" (camera orbits around) or "fixed" (camera turns around)
 ):
     pcd = o3d.io.read_point_cloud(pcd_path)
@@ -74,7 +75,7 @@ def generate_trajectory_and_mapping(
     vis.create_window(width=width, height=height, visible=False)
     vis.add_geometry(pcd)
 
-    cam_distance = radius / zoom
+    cam_distance = cam_distance_multiplier * radius / zoom
 
     for i in range(num_views):
         print(f"Image numero {i}")
@@ -130,6 +131,9 @@ def generate_trajectory_and_mapping(
         cam_params = ctr.convert_to_pinhole_camera_parameters()
         cam_params.extrinsic = extrinsic_matrix
         ctr.convert_from_pinhole_camera_parameters(cam_params, True)
+
+        render_opt = vis.get_render_option()
+        render_opt.point_size = (5.0)
 
         # Render
         vis.poll_events()
@@ -202,8 +206,4 @@ def generate_trajectory_and_mapping(
     vis.destroy_window()
 
 
-# Execute en mode orbite
-# generate_trajectory_and_mapping(mode="orbit")
-
-# Execute en mode panoramique (caméra fixe)
-generate_trajectory_and_mapping(mode="fixed")
+generate_trajectory_and_mapping(mode="orbit")
