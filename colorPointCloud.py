@@ -5,24 +5,25 @@ import open3d as o3d
 
 # Paths
 hbim_dir = Path(__file__).parent
-ply_input_path = hbim_dir / "Maison_Villa.ply"
+ply_input_path = hbim_dir / "Villa.ply"
 labels_json_path = hbim_dir / "point_labels_all.json"
 ply_output_path = (
-    hbim_dir / "Maison_Villa_segmented.ply"
+    hbim_dir / "Villa_segmented.ply"
 )
 
 # Different colors for different labels
 # Need to adapt based on 3D model
 color_palette = {
-    "house": [0.8, 0.7, 0.6],       # Beige / Tan
-    "tree": [0.1, 0.4, 0.15],       # Vert foncé
-    "window": [0.0, 0.6, 0.9],      # Bleu ciel
-    "pool": [0.0, 0.8, 0.9],        # Bleu piscine / Turquoise
-    "car": [0.9, 0.2, 0.2],         # Rouge
-    "road": [0.2, 0.2, 0.2],        # Gris foncé
-    "grass": [0.4, 0.8, 0.2],       # Vert clair
-    "table": [0.55, 0.35, 0.15],    # Marron bois
-    "bush": [0.2, 0.6, 0.2],        # Vert moyen
+    "house":         (0.820, 0.700, 0.500),  # Beige pierre
+    "road":          (0.220, 0.220, 0.220),  # Gris asphalte
+    "grass":         (0.350, 0.700, 0.200),  # Vert herbe
+    "window":        (0.300, 0.700, 0.900),  # Bleu ciel
+    "car":           (0.850, 0.120, 0.100),  # Rouge automobile
+    "tree":          (0.100, 0.500, 0.150),  # Vert feuillage foncé
+    "pool": (0.000, 0.700, 0.900),  # Bleu aquatique
+    "fence":         (0.450, 0.300, 0.180),  # Marron bois
+    "table":         (0.650, 0.400, 0.200),  # Marron clair
+    "bush":          (0.200, 0.600, 0.250),  # Vert buisson
 }
 default_color = [0.2, 0.2, 0.2] 
 

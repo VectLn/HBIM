@@ -40,7 +40,7 @@ def get_panorama_pose(
 
 
 def generate_trajectory_and_mapping(
-    pcd_path="Maison_Villa.ply",
+    pcd_path="Paris1.ply",
     num_views=8,
     width=1280,
     height=960,
@@ -74,6 +74,10 @@ def generate_trajectory_and_mapping(
     vis = o3d.visualization.Visualizer()
     vis.create_window(width=width, height=height, visible=False)
     vis.add_geometry(pcd)
+
+    # Taille des points dans les images capturées
+    render_option = vis.get_render_option()
+    render_option.point_size = 10.0
 
     cam_distance = cam_distance_multiplier * radius / zoom
 
